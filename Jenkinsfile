@@ -195,6 +195,16 @@ pipeline {
                 ]) {
                     sh '''
                         set -eu
+                        # Without this the stage dies with "ansible-playbook: not
+                        # found" and exit 127, which says nothing about how to fix
+                        # it -- and only after the image has already been built and
+                        # pushed, several minutes in.
+                        if ! command -v ansible-playbook >/dev/null 2>&1; then
+                            echo "ansible-playbook is not installed on this Jenkins host."
+                            echo "Install it with:   sudo apt install -y ansible"
+                            echo "then restart Jenkins:   sudo systemctl restart jenkins"
+                            exit 1
+                        fi
                         cd infra/ansible
                         # The inventory is one host, so it is written here from the IP
                         # Terraform produced rather than committed to the infra repo.
